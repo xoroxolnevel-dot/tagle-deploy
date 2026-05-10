@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { useHydrated } from "./useHydrated";
-import { env } from "@/utils/env";
 
 const CATEGORIES = ["general", "artists", "other", "copyright", "characters", "meta"] as const;
 
@@ -23,9 +22,15 @@ interface TagResponse {
   name: string;
 }
 
+interface AutocompleteItem {
+  count?: number;
+  label: string;
+  value: string;
+}
+
 export function tagleRedirect(tags: string[]) {
-  const tagQuery = tags ? tags.map(encodeURIComponent).join("+") : "all";
-  window.open(`https://${env.apiUrl}/index.php?page=post&s=list&tags=${tagQuery}`, "_blank");
+  const tagQuery = tags.length > 0 ? tags.map(encodeURIComponent).join("+") : "all";
+  window.open(`/api/search?tags=${tagQuery}`, "_blank");
 }
 
 export function useTagle() {
@@ -34,27 +39,38 @@ export function useTagle() {
   const [queries, setQueries] = useLocalStorage<string[][]>("queries", [] as string[][]);
   const [selectedTags, setSelectedtags] = useState<string[]>([]);
   const [exclude, setExclude] = useState(false);
+  const [suggestions, setSuggestions] = useState<AutocompleteItem[]>([]);
 
   const hydrated = useHydrated();
 
-  const handleSubmit = async () => {
-    if (!value) return;
-    const res = await fetch(`/api/tag?name=${value}`);
+  const handleSubmit = async (name?: string) => {
+    const tag = name ?? value;
+    if (!tag) return;
+    const res = await fetch(`/api/tag?name=${tag}`);
 
     const data = (await res.json()) as TagResponse;
     const category = CATEGORIES[data.type] || "other";
 
-    if (!categoryMap[category].includes(value)) {
+    if (!categoryMap[category].includes(tag)) {
       setCategoryMap({
         ...categoryMap,
-        [category]: [...categoryMap[category], value],
+        [category]: [...categoryMap[category], tag],
       });
     }
 
+    setSuggestions([]);
     setValue("");
   };
 
-  const handleAutocomplete = async () => {};
+  const handleAutocomplete = async (search: string) => {
+    if (!search) {
+      setSuggestions([]);
+      return;
+    }
+    const res = await fetch(`/api/autocomplete?search=${encodeURIComponent(search)}`);
+    const data = (await res.json()) as AutocompleteItem[];
+    setSuggestions(data.sort((a, b) => (b.count ?? 0) - (a.count ?? 0)));
+  };
 
   const handleExclude = () => {
     setExclude(!exclude);
@@ -94,7 +110,9 @@ export function useTagle() {
     hydrated,
     selectedTags,
     setSelectedtags,
+    suggestions,
     handleSubmit,
+    handleAutocomplete,
     handleExclude,
     handleTagClick,
     handleTagDblClick,

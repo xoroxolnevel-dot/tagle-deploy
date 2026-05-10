@@ -13,7 +13,9 @@ export default function Home() {
     hydrated,
     selectedTags,
     setSelectedtags,
+    suggestions,
     handleSubmit,
+    handleAutocomplete,
     handleExclude,
     handleTagClick,
     handleTagDblClick,
@@ -27,16 +29,35 @@ export default function Home() {
       <h1>Tagle</h1>
       <div className="flex w-full gap-4">
         <div className="flex grow flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Register tags here"
-            className=""
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSubmit();
-            }}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Register tags here"
+              className="w-full"
+              value={value}
+              onChange={(e) => {
+                setValue(e.target.value);
+                handleAutocomplete(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSubmit();
+              }}
+            />
+            {suggestions.length > 0 && (
+              <ul className="absolute z-10 w-full border bg-white shadow">
+                {suggestions.map((s) => (
+                  <li
+                    key={s.value}
+                    className="flex cursor-pointer justify-between px-2 py-1 hover:bg-gray-100"
+                    onClick={() => handleSubmit(s.value)}
+                  >
+                    <span>{s.value}</span>
+                    <span className="text-gray-400 text-sm">{s.count?.toLocaleString()}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <div className="flex flex-wrap gap-2 rounded border p-2">
             {selectedTags.length > 0 ? (
               selectedTags.map((tag) => (

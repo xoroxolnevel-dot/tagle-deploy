@@ -6,6 +6,7 @@ function require(key: string): string {
 
 export const env = {
   get apiUrl() { return require("API_URL"); },
+  get webUrl() { return require("WEB_URL") },
   get apiKey() { return require("API_KEY"); },
   get userId() { return require("USER_ID"); },
 };

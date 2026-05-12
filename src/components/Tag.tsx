@@ -1,4 +1,5 @@
 import { Category } from "@/hooks/useTagle";
+import { decodeHtml } from "@/utils/decodeHtml";
 
 const lightCategory: Record<Category, string> = {
   copyright:
@@ -71,7 +72,7 @@ export default function Tag({
         onClick={() => tagOnClick!(name, category)}
         {...dragProps}
       >
-        {name}
+        {decodeHtml(name)}
       </button>
     );
   }
@@ -82,11 +83,10 @@ export default function Tag({
       : "border-gray-300 bg-gray-100 text-gray-700 hover:border-red-300 hover:bg-red-50 hover:text-red-600";
     return (
       <button
-        className={`${pill} group cursor-pointer ${colors}`}
+        className={`${pill} cursor-pointer ${colors}`}
         onClick={() => tagOnClick!(name)}
       >
-        {name}
-        <span className="ml-1 w-0 overflow-hidden transition-all group-hover:w-2.5">×</span>
+        {decodeHtml(name)}
       </button>
     );
   }
@@ -99,7 +99,7 @@ export default function Tag({
       className={`${pill} ${colors} ${onDragStart ? "cursor-grab active:cursor-grabbing" : "cursor-default"}`}
       {...dragProps}
     >
-      {name}
+      {decodeHtml(name)}
     </button>
   );
 }

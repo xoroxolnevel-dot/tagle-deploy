@@ -3,6 +3,7 @@ import { useLocalStorage } from "./useLocalStorage";
 import { useHydrated } from "./useHydrated";
 
 const CATEGORIES = ["general", "artists", "other", "copyright", "characters", "meta"] as const;
+const OPERATOR_TAGS = new Set(["(", "~", ")"]);
 
 export type Category = (typeof CATEGORIES)[number];
 
@@ -28,8 +29,14 @@ interface AutocompleteItem {
   value: string;
 }
 
+function decodeHtml(html: string) {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+}
+
 export function tagleRedirect(tags: string[]) {
-  const tagQuery = tags.length > 0 ? tags.map(encodeURIComponent).join("+") : "all";
+  const tagQuery = tags.length > 0 ? tags.map((t) => encodeURIComponent(decodeHtml(t))).join("+") : "all";
   window.open(`/api/search?tags=${tagQuery}`, "_blank");
 }
 
@@ -49,7 +56,17 @@ export function useTagle() {
   const handleSubmit = async (name?: string) => {
     const tag = name ?? value;
     if (!tag) return;
-    const res = await fetch(`/api/tag?name=${tag}`);
+
+    if (OPERATOR_TAGS.has(tag)) {
+      if (!categoryMap.other.includes(tag)) {
+        setCategoryMap({ ...categoryMap, other: [...categoryMap.other, tag] });
+      }
+      setSuggestions([]);
+      setValue("");
+      return;
+    }
+
+    const res = await fetch(`/api/tag?name=${encodeURIComponent(tag)}`);
 
     const data = (await res.json()) as TagResponse;
     const category = CATEGORIES[data.type] || "other";
@@ -103,7 +120,7 @@ export function useTagle() {
       });
       return;
     }
-    if (selectedTags.includes(tagName)) return;
+    if (!OPERATOR_TAGS.has(tagName) && selectedTags.includes(tagName)) return;
     const tag = exclude ? `-${tagName}` : tagName;
     setSelectedtags((prev) => [...prev, tag]);
   };
@@ -113,7 +130,14 @@ export function useTagle() {
   };
 
   const handleSearchTagClick = (tagName: string) => {
-    setSelectedtags((prev) => prev.filter((tag) => tag !== tagName));
+    setSelectedtags((prev) => {
+      const idx = prev.indexOf(tagName);
+      return idx === -1 ? prev : [...prev.slice(0, idx), ...prev.slice(idx + 1)];
+    });
+  };
+
+  const handleSearchTagRemoveAt = (index: number) => {
+    setSelectedtags((prev) => [...prev.slice(0, index), ...prev.slice(index + 1)]);
   };
 
   const handleSave = () => {
@@ -163,6 +187,7 @@ export function useTagle() {
     clearSuggestions,
     handleTagClick,
     handleSearchTagClick,
+    handleSearchTagRemoveAt,
     handleSave,
     handleSearch,
     handleQueryRemove,

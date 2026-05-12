@@ -9,12 +9,21 @@ type AutocompleteItem = {
   value: string;
 };
 
+function htmlEncode(s: string) {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/'/g, "&#039;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export async function GET(request: NextRequest) {
   try {
     const search = request.nextUrl.searchParams.get("search");
     if (!search) throw new Error("Empty search.");
     const params = new URLSearchParams({
-      q: search,
+      q: htmlEncode(search),
     });
     const apiRes = await fetch("https://" + env.apiUrl + `/autocomplete.php?${params}`);
     if (!apiRes.ok) throw new Error(`Upstream error: ${apiRes.status}`);

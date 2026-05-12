@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { decodeHtml } from "@/utils/decodeHtml";
 import TagSection from "@/components/TagSection";
 import Tag from "@/components/Tag";
 import { useTagle } from "@/hooks/useTagle";
@@ -33,7 +34,7 @@ export default function Home() {
     handleRemoveMode,
     clearSuggestions,
     handleTagClick,
-    handleSearchTagClick,
+    handleSearchTagRemoveAt,
     handleSave,
     handleSearch,
     handleQueryRemove,
@@ -42,7 +43,7 @@ export default function Home() {
   } = useTagle();
 
   useEffect(() => {
-    setHighlightIdx(suggestions.length > 0 ? 0 : -1);
+    setHighlightIdx(-1);
   }, [suggestions]);
 
   // ── theme shortcuts ──────────────────────────────────────────────────────
@@ -152,7 +153,7 @@ export default function Home() {
                     setHighlightIdx(-1);
                   }}
                 >
-                  <span className={`font-mono text-xs ${dropTextCls}`}>{s.value}</span>
+                  <span className={`font-mono text-xs ${dropTextCls}`}>{decodeHtml(s.value)}</span>
                   <span className={`text-xs ${dropCountCls}`}>{s.count?.toLocaleString()}</span>
                 </li>
               ))}
@@ -165,13 +166,13 @@ export default function Home() {
           className={`flex min-h-10 flex-wrap content-start gap-1.5 rounded-md border px-3 py-2 ${selAreaCls}`}
         >
           {selectedTags.length > 0 ? (
-            selectedTags.map((tag) => (
+            selectedTags.map((tag, i) => (
               <Tag
-                key={tag}
+                key={`${tag}-${i}`}
                 name={tag}
                 type="search"
                 dark={dark}
-                tagOnClick={handleSearchTagClick}
+                tagOnClick={() => handleSearchTagRemoveAt(i)}
               />
             ))
           ) : (
@@ -222,11 +223,11 @@ export default function Home() {
               <>
                 <TagSection
                   dark={dark}
-                  name="Copyright"
-                  tags={categoryMap.copyright}
+                  name="General"
+                  tags={categoryMap.general}
                   query={false}
                   tagOnClick={handleTagClick}
-                  onReorder={(f, t) => handleCategoryReorder("copyright", f, t)}
+                  onReorder={(f, t) => handleCategoryReorder("general", f, t)}
                 />
                 <TagSection
                   dark={dark}
@@ -246,11 +247,11 @@ export default function Home() {
                 />
                 <TagSection
                   dark={dark}
-                  name="General"
-                  tags={categoryMap.general}
+                  name="Copyright"
+                  tags={categoryMap.copyright}
                   query={false}
                   tagOnClick={handleTagClick}
-                  onReorder={(f, t) => handleCategoryReorder("general", f, t)}
+                  onReorder={(f, t) => handleCategoryReorder("copyright", f, t)}
                 />
                 <TagSection
                   dark={dark}

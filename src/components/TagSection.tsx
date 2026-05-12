@@ -59,7 +59,7 @@ export default function TagSection({
       <div className={cardClass} onClick={onSectionClick}>
         {tags.map((tag, i) => (
           <Tag
-            key={tag}
+            key={`${tag}-${i}`}
             name={tag}
             type="query"
             dark={dark}

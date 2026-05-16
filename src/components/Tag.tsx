@@ -35,6 +35,7 @@ interface TagProps {
   dark?: boolean;
   category?: Category;
   tagOnClick?: (name: string, category?: Category) => void;
+  tagOnContextMenu?: (name: string, category?: Category) => void;
   index?: number;
   onDragStart?: (index: number) => void;
   onDragOver?: (index: number) => void;
@@ -47,6 +48,7 @@ export default function Tag({
   dark = false,
   category,
   tagOnClick,
+  tagOnContextMenu,
   index,
   onDragStart,
   onDragOver,
@@ -70,6 +72,7 @@ export default function Tag({
       <button
         className={`${pill} ${colors} cursor-pointer ${onDragStart ? "cursor-grab active:cursor-grabbing" : ""}`}
         onClick={() => tagOnClick!(name, category)}
+        onContextMenu={tagOnContextMenu ? (e) => { e.preventDefault(); tagOnContextMenu(name, category); } : undefined}
         {...dragProps}
       >
         {decodeHtml(name)}

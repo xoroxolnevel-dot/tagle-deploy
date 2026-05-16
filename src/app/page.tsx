@@ -148,6 +148,7 @@ export default function Home() {
                 <li
                   key={s.value}
                   className={`flex cursor-pointer items-center justify-between px-3 py-1.5 transition-colors ${i === highlightIdx ? (d ? "bg-zinc-700" : "bg-gray-100") : dropItemCls}`}
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     handleSubmit(s.value);
                     setHighlightIdx(-1);
@@ -205,13 +206,13 @@ export default function Home() {
           className={`justify-center rounded-md border px-3 py-1.5 text-sm transition-colors ${excludeCls}`}
           onClick={handleExclude}
         >
-          {exclude ? "− Exclude mode on" : "+ Exclude mode"}
+          {exclude ? "- Exclude mode on" : "+ Exclude mode"}
         </button>
         <button
           className={`justify-center rounded-md border px-3 py-1.5 text-sm transition-colors ${removeCls}`}
           onClick={handleRemoveMode}
         >
-          {removeMode ? "− Remove mode on" : "− Remove mode"}
+          {removeMode ? "- Remove mode on" : "- Remove mode"}
         </button>
       </aside>
 
@@ -227,6 +228,7 @@ export default function Home() {
                   tags={categoryMap.general}
                   query={false}
                   tagOnClick={handleTagClick}
+                  tagOnContextMenu={(name) => handleSearch([name])}
                   onReorder={(f, t) => handleCategoryReorder("general", f, t)}
                 />
                 <TagSection
@@ -235,6 +237,7 @@ export default function Home() {
                   tags={categoryMap.characters}
                   query={false}
                   tagOnClick={handleTagClick}
+                  tagOnContextMenu={(name) => handleSearch([name])}
                   onReorder={(f, t) => handleCategoryReorder("characters", f, t)}
                 />
                 <TagSection
@@ -243,6 +246,7 @@ export default function Home() {
                   tags={categoryMap.artists}
                   query={false}
                   tagOnClick={handleTagClick}
+                  tagOnContextMenu={(name) => handleSearch([name])}
                   onReorder={(f, t) => handleCategoryReorder("artists", f, t)}
                 />
                 <TagSection
@@ -251,6 +255,7 @@ export default function Home() {
                   tags={categoryMap.copyright}
                   query={false}
                   tagOnClick={handleTagClick}
+                  tagOnContextMenu={(name) => handleSearch([name])}
                   onReorder={(f, t) => handleCategoryReorder("copyright", f, t)}
                 />
                 <TagSection
@@ -259,6 +264,7 @@ export default function Home() {
                   tags={categoryMap.meta}
                   query={false}
                   tagOnClick={handleTagClick}
+                  tagOnContextMenu={(name) => handleSearch([name])}
                   onReorder={(f, t) => handleCategoryReorder("meta", f, t)}
                 />
                 <TagSection
@@ -267,6 +273,7 @@ export default function Home() {
                   tags={categoryMap.other}
                   query={false}
                   tagOnClick={handleTagClick}
+                  tagOnContextMenu={(name) => handleSearch([name])}
                   onReorder={(f, t) => handleCategoryReorder("other", f, t)}
                 />
               </>

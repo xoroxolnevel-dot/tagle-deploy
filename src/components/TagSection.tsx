@@ -26,6 +26,7 @@ interface TagSectionProps {
   query: boolean;
   dark?: boolean;
   tagOnClick?: (name: string, category?: Category) => void;
+  tagOnContextMenu?: (name: string, category?: Category) => void;
   onSectionClick?: () => void;
   onReorder?: (from: number, to: number) => void;
 }
@@ -36,6 +37,7 @@ export default function TagSection({
   query,
   dark = false,
   tagOnClick,
+  tagOnContextMenu,
   onSectionClick,
   onReorder,
 }: TagSectionProps) {
@@ -90,6 +92,7 @@ export default function TagSection({
               dark={dark}
               category={name!.toLowerCase() as Category}
               tagOnClick={tagOnClick}
+              tagOnContextMenu={tagOnContextMenu}
               index={i}
               onDragStart={onReorder ? handleDragStart : undefined}
               onDrop={onReorder ? handleDrop : undefined}

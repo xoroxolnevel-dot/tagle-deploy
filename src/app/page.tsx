@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { decodeHtml } from "@/utils/decodeHtml";
 import TagSection from "@/components/TagSection";
 import Tag from "@/components/Tag";
@@ -14,8 +15,12 @@ export default function Home() {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
-  const queriesDragIndex = useRef<number | null>(null);
   const [highlightIdx, setHighlightIdx] = useState(-1);
+  const [displayQueries, setDisplayQueries] = useState<string[][]>([]);
+  const [queriesActiveDrag, setQueriesActiveDrag] = useState<number | null>(null);
+  const queriesDragSrc = useRef<number | null>(null);
+  const queriesOriginalSrc = useRef<number | null>(null);
+  const queriesDidDrop = useRef(false);
 
   const {
     value,
@@ -45,6 +50,10 @@ export default function Home() {
   useEffect(() => {
     setHighlightIdx(-1);
   }, [suggestions]);
+
+  useEffect(() => {
+    if (queriesDragSrc.current === null) setDisplayQueries(queries);
+  }, [queries]);
 
   // ── theme shortcuts ──────────────────────────────────────────────────────
   const d = dark;
@@ -287,19 +296,44 @@ export default function Home() {
               Saved Queries
             </p>
             <div className="flex flex-col gap-2">
-              {queries.map((queryTags, i) => (
-                <div
-                  key={i}
+              {displayQueries.map((queryTags, i) => (
+                <motion.div
+                  key={queryTags.join("\0")}
+                  layout
+                  transition={{ duration: 0.15 }}
                   draggable
-                  className="cursor-grab active:cursor-grabbing"
-                  onDragStart={() => {
-                    queriesDragIndex.current = i;
+                  className={`cursor-grab active:cursor-grabbing transition-opacity ${queriesActiveDrag === i ? "opacity-30" : ""}`}
+                  onDragStartCapture={(e: React.DragEvent) => {
+                    e.dataTransfer.effectAllowed = "move";
+                    queriesDragSrc.current = i;
+                    queriesOriginalSrc.current = i;
+                    queriesDidDrop.current = false;
+                    setQueriesActiveDrag(i);
                   }}
-                  onDragOver={(e) => e.preventDefault()}
+                  onDragEnter={() => {
+                    if (queriesDragSrc.current === null || queriesDragSrc.current === i) return;
+                    const next = [...displayQueries];
+                    const [item] = next.splice(queriesDragSrc.current, 1);
+                    next.splice(i, 0, item);
+                    queriesDragSrc.current = i;
+                    setQueriesActiveDrag(i);
+                    setDisplayQueries(next);
+                  }}
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
                   onDrop={() => {
-                    if (queriesDragIndex.current === null || queriesDragIndex.current === i) return;
-                    handleQueriesReorder(queriesDragIndex.current, i);
-                    queriesDragIndex.current = null;
+                    if (queriesOriginalSrc.current === null || queriesDragSrc.current === null) return;
+                    queriesDidDrop.current = true;
+                    handleQueriesReorder(queriesOriginalSrc.current, queriesDragSrc.current);
+                    queriesDragSrc.current = null;
+                    queriesOriginalSrc.current = null;
+                    setQueriesActiveDrag(null);
+                  }}
+                  onDragEnd={() => {
+                    if (!queriesDidDrop.current) setDisplayQueries(queries);
+                    queriesDidDrop.current = false;
+                    queriesDragSrc.current = null;
+                    queriesOriginalSrc.current = null;
+                    setQueriesActiveDrag(null);
                   }}
                 >
                   <TagSection
@@ -310,7 +344,7 @@ export default function Home() {
                       removeMode ? handleQueryRemove(i) : handleSearch(queryTags)
                     }
                   />
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>

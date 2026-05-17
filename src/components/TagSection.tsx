@@ -1,4 +1,5 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import Tag from "./Tag";
 import { Category } from "@/hooks/useTagle";
 
@@ -41,16 +42,45 @@ export default function TagSection({
   onSectionClick,
   onReorder,
 }: TagSectionProps) {
-  const dragIndex = useRef<number | null>(null);
+  const [displayTags, setDisplayTags] = useState(tags);
+  const [activeDrag, setActiveDrag] = useState<number | null>(null);
+  const dragSrc = useRef<number | null>(null);
+  const originalSrc = useRef<number | null>(null);
+  const didDrop = useRef(false);
+
+  useEffect(() => {
+    if (dragSrc.current === null) setDisplayTags(tags);
+  }, [tags]);
 
   const handleDragStart = (i: number) => {
-    dragIndex.current = i;
+    dragSrc.current = i;
+    originalSrc.current = i;
+    didDrop.current = false;
+    setActiveDrag(i);
   };
 
-  const handleDrop = (i: number) => {
-    if (dragIndex.current === null || dragIndex.current === i) return;
-    onReorder?.(dragIndex.current, i);
-    dragIndex.current = null;
+  const handleDragEnter = (i: number) => {
+    if (dragSrc.current === null || dragSrc.current === i) return;
+    const next = [...displayTags];
+    const [item] = next.splice(dragSrc.current, 1);
+    next.splice(i, 0, item);
+    dragSrc.current = i;
+    setActiveDrag(i);
+    setDisplayTags(next);
+  };
+
+  const handleDrop = () => {
+    if (originalSrc.current === null || dragSrc.current === null) return;
+    didDrop.current = true;
+    onReorder?.(originalSrc.current, dragSrc.current);
+  };
+
+  const handleDragEnd = () => {
+    if (!didDrop.current) setDisplayTags(tags);
+    didDrop.current = false;
+    dragSrc.current = null;
+    originalSrc.current = null;
+    setActiveDrag(null);
   };
 
   if (query) {
@@ -83,20 +113,24 @@ export default function TagSection({
     <div className="flex flex-col gap-1.5">
       <p className={`text-xs font-semibold tracking-widest uppercase ${colorClass}`}>{name}</p>
       <div className="flex flex-wrap gap-1.5">
-        {tags.length > 0 ? (
-          tags.map((tag, i) => (
-            <Tag
-              key={tag}
-              name={tag}
-              type="category"
-              dark={dark}
-              category={name!.toLowerCase() as Category}
-              tagOnClick={tagOnClick}
-              tagOnContextMenu={tagOnContextMenu}
-              index={i}
-              onDragStart={onReorder ? handleDragStart : undefined}
-              onDrop={onReorder ? handleDrop : undefined}
-            />
+        {displayTags.length > 0 ? (
+          displayTags.map((tag, i) => (
+            <motion.div key={tag} layout transition={{ duration: 0.15 }} style={{ display: "inline-flex" }}>
+              <Tag
+                name={tag}
+                type="category"
+                dark={dark}
+                category={name!.toLowerCase() as Category}
+                tagOnClick={tagOnClick}
+                tagOnContextMenu={tagOnContextMenu}
+                dim={activeDrag === i}
+                index={i}
+                onDragStart={onReorder ? handleDragStart : undefined}
+                onDragEnter={onReorder ? handleDragEnter : undefined}
+                onDrop={onReorder ? handleDrop : undefined}
+                onDragEnd={onReorder ? handleDragEnd : undefined}
+              />
+            </motion.div>
           ))
         ) : (
           <span className={emptyClass}>—</span>

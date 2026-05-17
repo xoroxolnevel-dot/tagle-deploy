@@ -36,10 +36,12 @@ interface TagProps {
   category?: Category;
   tagOnClick?: (name: string, category?: Category) => void;
   tagOnContextMenu?: (name: string, category?: Category) => void;
+  dim?: boolean;
   index?: number;
   onDragStart?: (index: number) => void;
-  onDragOver?: (index: number) => void;
+  onDragEnter?: (index: number) => void;
   onDrop?: (index: number) => void;
+  onDragEnd?: () => void;
 }
 
 export default function Tag({
@@ -49,20 +51,21 @@ export default function Tag({
   category,
   tagOnClick,
   tagOnContextMenu,
+  dim = false,
   index,
   onDragStart,
-  onDragOver,
+  onDragEnter,
   onDrop,
+  onDragEnd,
 }: TagProps) {
   const dragProps = onDragStart
     ? {
         draggable: true as const,
-        onDragStart: () => onDragStart(index!),
-        onDragOver: (e: React.DragEvent) => {
-          e.preventDefault();
-          onDragOver?.(index!);
-        },
+        onDragStart: (e: React.DragEvent) => { e.dataTransfer.effectAllowed = "move"; onDragStart(index!); },
+        onDragEnter: (e: React.DragEvent) => { e.preventDefault(); onDragEnter?.(index!); },
+        onDragOver: (e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; },
         onDrop: () => onDrop?.(index!),
+        onDragEnd: () => onDragEnd?.(),
       }
     : {};
 
@@ -70,7 +73,7 @@ export default function Tag({
     const colors = dark ? darkCategory[category!] : lightCategory[category!];
     return (
       <button
-        className={`${pill} ${colors} cursor-pointer ${onDragStart ? "cursor-grab active:cursor-grabbing" : ""}`}
+        className={`${pill} ${colors} cursor-pointer transition-opacity ${onDragStart ? "cursor-grab active:cursor-grabbing" : ""} ${dim ? "opacity-30" : ""}`}
         onClick={() => tagOnClick!(name, category)}
         onContextMenu={tagOnContextMenu ? (e) => { e.preventDefault(); tagOnContextMenu(name, category); } : undefined}
         {...dragProps}

@@ -21,6 +21,7 @@ export default function Home() {
   const queriesDragSrc = useRef<number | null>(null);
   const queriesOriginalSrc = useRef<number | null>(null);
   const queriesDidDrop = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const {
     value,
@@ -54,6 +55,20 @@ export default function Home() {
   useEffect(() => {
     if (queriesDragSrc.current === null) setDisplayQueries(queries);
   }, [queries]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (document.activeElement === inputRef.current) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "s") handleSave();
+      else if (e.key === "g") handleSearch();
+      else if (e.key === "c") setSelectedtags([]);
+      else if (e.key === "e") handleExclude();
+      else if (e.key === "r") handleRemoveMode();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleSave, handleSearch, setSelectedtags, handleExclude, handleRemoveMode]);
 
   // ── theme shortcuts ──────────────────────────────────────────────────────
   const d = dark;
@@ -97,6 +112,9 @@ export default function Home() {
       : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-600";
   const queryBorderCls = d ? "border-zinc-800/80" : "border-gray-200";
   const queryLabelCls = d ? "text-zinc-400" : "text-gray-400";
+  const kbdCls = d
+    ? "rounded border border-zinc-600 bg-zinc-700 px-1 py-0.5 font-mono text-[10px] text-zinc-400"
+    : "rounded border border-gray-300 bg-gray-100 px-1 py-0.5 font-mono text-[10px] text-gray-400";
 
   return (
     <div className={`flex min-h-screen ${rootCls}`}>
@@ -116,6 +134,7 @@ export default function Home() {
         {/* Tag input */}
         <div className="relative">
           <input
+            ref={inputRef}
             type="text"
             placeholder="Add tag…"
             className={`w-full rounded-md border px-3 py-2 text-sm transition-colors outline-none focus:ring-1 ${inputCls}`}
@@ -193,35 +212,35 @@ export default function Home() {
         {/* Actions */}
         <div className="flex gap-2">
           <button
-            className={`flex-1 justify-center rounded-md border px-3 py-1.5 text-sm transition-colors ${saveBtnCls}`}
+            className={`flex flex-1 items-center justify-between rounded-md border px-3 py-1.5 text-sm transition-colors ${saveBtnCls}`}
             onClick={handleSave}
           >
-            Save
+            Save <kbd className={kbdCls}>s</kbd>
           </button>
           <button
-            className="flex-1 justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+            className="flex flex-1 items-center justify-between rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
             onClick={() => handleSearch()}
           >
-            Go →
+            Go → <kbd className="rounded border border-blue-400/60 bg-blue-500/60 px-1 py-0.5 font-mono text-[10px] text-blue-200">g</kbd>
           </button>
         </div>
         <button
-          className={`justify-center rounded-md border px-3 py-1.5 text-sm transition-colors ${clearBtnCls}`}
+          className={`flex items-center justify-between rounded-md border px-3 py-1.5 text-sm transition-colors ${clearBtnCls}`}
           onClick={() => setSelectedtags([])}
         >
-          Clear
+          Clear <kbd className={kbdCls}>c</kbd>
         </button>
         <button
-          className={`justify-center rounded-md border px-3 py-1.5 text-sm transition-colors ${excludeCls}`}
+          className={`flex items-center justify-between rounded-md border px-3 py-1.5 text-sm transition-colors ${excludeCls}`}
           onClick={handleExclude}
         >
-          {exclude ? "- Exclude mode on" : "+ Exclude mode"}
+          {exclude ? "Exclude mode on" : "Exclude mode"} <kbd className={kbdCls}>e</kbd>
         </button>
         <button
-          className={`justify-center rounded-md border px-3 py-1.5 text-sm transition-colors ${removeCls}`}
+          className={`flex items-center justify-between rounded-md border px-3 py-1.5 text-sm transition-colors ${removeCls}`}
           onClick={handleRemoveMode}
         >
-          {removeMode ? "- Remove mode on" : "- Remove mode"}
+          {removeMode ? "Remove mode on" : "Remove mode"} <kbd className={kbdCls}>r</kbd>
         </button>
       </aside>
 

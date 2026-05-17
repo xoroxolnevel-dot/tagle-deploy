@@ -70,13 +70,12 @@ export function useTagle() {
 
     const data = (await res.json()) as TagResponse;
     const category = CATEGORIES[data.type] || "other";
-
-    if (!categoryMap[category].includes(tag)) {
-      setCategoryMap({
-        ...categoryMap,
-        [category]: [...categoryMap[category], tag],
-      });
-    }
+    const existing = categoryMap[category];
+    const idx = existing.indexOf(tag);
+    const newList = idx === -1
+      ? [...existing, tag]
+      : [tag, ...existing.filter((_, i) => i !== idx)];
+    setCategoryMap({ ...categoryMap, [category]: newList });
 
     setSuggestions([]);
     setValue("");

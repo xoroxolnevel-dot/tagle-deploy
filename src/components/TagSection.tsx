@@ -29,6 +29,7 @@ interface TagSectionProps {
   tagOnClick?: (name: string, category?: Category) => void;
   tagOnContextMenu?: (name: string, category?: Category) => void;
   onSectionClick?: () => void;
+  onSectionContextMenu?: () => void;
   onReorder?: (from: number, to: number) => void;
 }
 
@@ -40,6 +41,7 @@ export default function TagSection({
   tagOnClick,
   tagOnContextMenu,
   onSectionClick,
+  onSectionContextMenu,
   onReorder,
 }: TagSectionProps) {
   const [displayTags, setDisplayTags] = useState(tags);
@@ -88,7 +90,11 @@ export default function TagSection({
       ? "flex flex-wrap gap-1.5 rounded-lg border border-zinc-800/80 bg-zinc-900/40 p-3 transition-colors hover:border-zinc-700/80 hover:bg-zinc-800/40"
       : "flex flex-wrap gap-1.5 rounded-lg border border-gray-200 bg-gray-50 p-3 transition-colors hover:border-gray-300 hover:bg-gray-100/60";
     return (
-      <div className={cardClass} onClick={onSectionClick}>
+      <div
+        className={cardClass}
+        onClick={onSectionClick}
+        onContextMenu={onSectionContextMenu ? (e) => { e.preventDefault(); onSectionContextMenu(); } : undefined}
+      >
         {tags.map((tag, i) => (
           <Tag
             key={`${tag}-${i}`}

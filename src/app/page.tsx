@@ -348,6 +348,12 @@ export default function Home() {
                     onSectionClick={() =>
                       removeMode ? handleQueryRemove(i) : handleSearch(queryTags)
                     }
+                    onSectionContextMenu={() =>
+                      setSelectedtags((prev) => [
+                        ...prev,
+                        ...queryTags.filter((t) => !prev.includes(t)),
+                      ])
+                    }
                   />
                 </motion.div>
               ))}
